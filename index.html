@@ -5,29 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hostal HDQ - Ocupación</title>
     <style>
-        /* --- NUEVA PALETA DE COLORES --- */
+        /* Paleta de colores (Gris y Café) */
         :root {
-            --primary-color: #8D8787; /* Gris principal */
-            --secondary-color: #5C5858; /* Gris oscuro para el encabezado */
-            --light-bg: #F0EEE9; /* Fondo claro tipo café/beige */
-            --dark-text: #3D3A37; /* Texto principal oscuro */
-            
-            /* Colores de estado se mantienen */
-            --success-color: #27ae60; /* Verde para libre/éxito */
-            --danger-color: #e74c3c;  /* Rojo para ocupado/acción */
-            
-            /* Degradados actualizados */
+            --primary-color: #8D8787; --secondary-color: #5C5858; --light-bg: #F0EEE9;
+            --dark-text: #3D3A37; --success-color: #27ae60; --danger-color: #e74c3c;
             --gradient-primary: linear-gradient(135deg, #A9A9A9 0%, #8D8787 100%);
             --gradient-header: linear-gradient(135deg, #696969 0%, #5C5858 100%);
         }
-        /* --- FIN DE NUEVA PALETA --- */
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #D3CFC7 0%, #BAB5AE 100%); /* Fondo general en tonos café claro */
+            background: linear-gradient(135deg, #D3CFC7 0%, #BAB5AE 100%);
             min-height: 100vh; padding: 20px; color: var(--dark-text);
         }
+
+        /* --- ESTILOS PARA LA PANTALLA DE CONTRASEÑA --- */
+        #password-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; transition: opacity 0.3s ease;
+        }
+        .password-box {
+            background: white; padding: 40px; border-radius: 15px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 400px; width: 90%;
+        }
+        .password-box h2 { color: var(--secondary-color); margin-bottom: 15px; }
+        .password-box p { margin-bottom: 25px; color: #666; }
+        #password-input {
+            width: 100%; padding: 12px; border: 2px solid #ccc;
+            border-radius: 8px; margin-bottom: 20px; font-size: 1em;
+        }
+        #password-input:focus { border-color: var(--primary-color); outline: none; }
+        #password-submit {
+            width: 100%; padding: 12px; background: var(--primary-color); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+        #password-submit:hover { background: var(--secondary-color); }
+        #error-message { color: var(--danger-color); margin-top: 15px; min-height: 20px; font-weight: bold; }
+        /* --- FIN DE ESTILOS DE CONTRASEÑA --- */
+
+        /* El contenido principal está oculto al inicio */
+        #main-content { display: none; }
+
         .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: var(--gradient-header); color: white; padding: 30px; text-align: center; }
         .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
@@ -42,8 +63,8 @@
         .legend { display: flex; gap: 15px; font-size: 0.9em; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .legend-color { width: 20px; height: 20px; border-radius: 3px; }
-        .legend-libre { background-color: #d4edda; } /* Verde se mantiene */
-        .legend-ocupado { background-color: #f8d7da; } /* Rojo se mantiene */
+        .legend-libre { background-color: #d4edda; }
+        .legend-ocupado { background-color: #f8d7da; }
         .table-container { padding: 20px; overflow-x: auto; }
         .occupancy-table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .occupancy-table th { background: var(--gradient-primary); color: white; padding: 15px 10px; text-align: center; font-weight: bold; font-size: 1.1em; }
@@ -61,27 +82,82 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header"><h1>HOSTAL HDQ - OCUPACIÓN</h1><div class="date" id="currentDate"></div></div>
-        <div class="controls">
-            <div class="week-selector">
-                <button onclick="changeWeek(-1)">← Semana Anterior</button>
-                <span class="current-week" id="currentWeek"></span>
-                <button onclick="changeWeek(1)">Siguiente Semana →</button>
-            </div>
-            <div class="occupancy-info">
-                <div class="occupancy-rate" id="occupancyRate">Ocupación: 0%</div>
-                <div class="legend"><div class="legend-item"><div class="legend-color legend-libre"></div><span>Libre</span></div><div class="legend-item"><div class="legend-color legend-ocupado"></div><span>Ocupado</span></div></div>
-            </div>
+
+    <!-- PANTALLA DE CONTRASEÑA -->
+    <div id="password-overlay">
+        <div class="password-box">
+            <h2>Acceso Protegido</h2>
+            <p>Por favor, ingresa la contraseña para ver la ocupación.</p>
+            <input type="password" id="password-input" placeholder="Contraseña" autofocus>
+            <button id="password-submit">Ingresar</button>
+            <p id="error-message"></p>
         </div>
-        <div class="table-container"><div class="loading" id="loading"><div class="spinner"></div><div>Cargando datos...</div></div><table class="occupancy-table" id="occupancyTable" style="display: none;"><thead id="tableHeader"></thead><tbody id="tableBody"></tbody></table></div>
     </div>
-    <button class="refresh-btn" onclick="loadData()" title="Actualizar datos">🔄</button>
+
+    <!-- CONTENIDO PRINCIPAL DE LA PÁGINA (OCULTO) -->
+    <div id="main-content">
+        <div class="container">
+            <div class="header"><h1>HOSTAL HDQ - OCUPACIÓN</h1><div class="date" id="currentDate"></div></div>
+            <div class="controls">
+                <div class="week-selector">
+                    <button onclick="changeWeek(-1)">← Semana Anterior</button>
+                    <span class="current-week" id="currentWeek"></span>
+                    <button onclick="changeWeek(1)">Siguiente Semana →</button>
+                </div>
+                <div class="occupancy-info">
+                    <div class="occupancy-rate" id="occupancyRate">Ocupación: 0%</div>
+                    <div class="legend"><div class="legend-item"><div class="legend-color legend-libre"></div><span>Libre</span></div><div class="legend-item"><div class="legend-color legend-ocupado"></div><span>Ocupado</span></div></div>
+                </div>
+            </div>
+            <div class="table-container"><div class="loading" id="loading"><div class="spinner"></div><div>Cargando datos...</div></div><table class="occupancy-table" id="occupancyTable" style="display: none;"><thead id="tableHeader"></thead><tbody id="tableBody"></tbody></table></div>
+        </div>
+        <button class="refresh-btn" onclick="loadData()" title="Actualizar datos">🔄</button>
+    </div>
 
     <script>
-        // --- Tu link de Google Sheets está configurado ---
-        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBPSZZfzoH0Xej-8smioPc4QLIDUEFg9Oyz5faJYl6LDp-21eJBdTTIVPTquhx1FU7vJoX7Bl4FbtM/pub?output=csv';
+        // --- CONFIGURACIÓN DE LA PÁGINA ---
+        
+        // La contraseña está establecida en 'hdq'.
+        const CORRECT_PASSWORD = 'hdq';
 
+        // Tu link de Google Sheets.
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBPSZZfzoH0Xej-8smioPc4QLIDUEFg9Oyz5faJYl6LDp-21eJBdTTIVPTquhx1FU7vJoX7Bl4FbtM/pub?output=csv';
+        
+        // --- LÓGICA DE LA PÁGINA (No necesitas editar más abajo) ---
+
+        // Lógica de la contraseña
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('password-overlay');
+            const passwordInput = document.getElementById('password-input');
+            const submitButton = document.getElementById('password-submit');
+            const errorMessage = document.getElementById('error-message');
+            const mainContent = document.getElementById('main-content');
+
+            const checkPassword = () => {
+                if (passwordInput.value === CORRECT_PASSWORD) {
+                    overlay.style.opacity = 0;
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 300);
+                    mainContent.style.display = 'block';
+                    initializeCalendar(); // Inicia el calendario solo si la contraseña es correcta
+                } else {
+                    errorMessage.textContent = 'Contraseña incorrecta.';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            };
+            
+            submitButton.addEventListener('click', checkPassword);
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        });
+
+
+        // Lógica del calendario
         let formData = [];
         const rooms = ['101', '102', '103', '201', '202', '203', '204', '205', '206', '207'];
         let currentWeekStart = new Date();
@@ -96,48 +172,32 @@
         async function fetchGoogleSheetData() {
             try {
                 const url = new URL(GOOGLE_SHEET_CSV_URL);
-                url.searchParams.set('t', new Date().getTime()); // Evita la caché
-
+                url.searchParams.set('t', new Date().getTime());
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`Error de red: ${response.status}`);
                 const csvText = await response.text();
-                
                 const lines = csvText.trim().split(/\r?\n/);
-                if (lines.length < 2) {
-                     showMessage('loading', '🤔 No se encontraron reservaciones', 'Se conectó a Google Sheets, pero la hoja está vacía. Agrega una reservación en tu Google Form para verla aquí.');
-                    return [];
-                }
-
+                if (lines.length < 2) { showMessage('loading', '🤔 No se encontraron reservaciones', 'Se conectó a Google Sheets, pero la hoja está vacía.'); return []; }
                 const headers = lines[0].split(',').map(h => h.trim());
                 const nombreIndex = headers.indexOf('Nombre');
                 const habitacionIndex = headers.indexOf('Habitación');
                 const fechaIngresoIndex = headers.indexOf('Fecha Ingreso');
                 const fechaSalidaIndex = headers.indexOf('Fecha Salida');
-
-                if ([nombreIndex, habitacionIndex, fechaIngresoIndex, fechaSalidaIndex].includes(-1)) {
-                    showMessage('loading', '❌ Error de Columnas', `No se encontraron las columnas correctas en Google Sheets. Asegúrate de que las preguntas en tu formulario se llamen exactamente: "Nombre", "Habitación", "Fecha Ingreso", y "Fecha Salida".`);
-                    return null;
-                }
-                
+                if ([nombreIndex, habitacionIndex, fechaIngresoIndex, fechaSalidaIndex].includes(-1)) { showMessage('loading', '❌ Error de Columnas', 'Asegúrate de que las preguntas se llamen exactamente: "Nombre", "Habitación", "Fecha Ingreso", y "Fecha Salida".'); return null; }
                 const data = [];
                 for (let i = 1; i < lines.length; i++) {
                     const values = lines[i].split(',');
                     const habitacionRaw = values[habitacionIndex] || '';
                     const newEntry = {
-                        nombre: values[nombreIndex] || 'Sin Nombre',
-                        fechaIngreso: values[fechaIngresoIndex],
-                        fechaSalida: values[fechaSalidaIndex],
+                        nombre: values[nombreIndex] || 'Sin Nombre', fechaIngreso: values[fechaIngresoIndex], fechaSalida: values[fechaSalidaIndex],
                         habitacion: habitacionRaw ? habitacionRaw.split(' ')[0] : '', 
                     };
-                    if (newEntry.fechaIngreso && newEntry.fechaSalida && newEntry.habitacion) {
-                        data.push(newEntry);
-                    }
+                    if (newEntry.fechaIngreso && newEntry.fechaSalida && newEntry.habitacion) data.push(newEntry);
                 }
                 return data;
-
             } catch (error) {
                 console.error('Error al cargar datos de Google Sheets:', error);
-                showMessage('loading', '❌ Error al Cargar Datos', `Ocurrió un problema: "${error.message}". Revisa que la URL de Google Sheets sea correcta.`);
+                showMessage('loading', '❌ Error al Cargar Datos', `Ocurrió un problema: "${error.message}".`);
                 return null;
             }
         }
@@ -146,29 +206,12 @@
         function formatDate(d) { return d.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); }
         function formatDateShort(d) { const day = d.toLocaleDateString('es-CL', { weekday: 'short' }); return `${day.charAt(0).toUpperCase() + day.slice(1)} ${d.getDate()}`; }
         function generateWeekDates(d) { const dates = []; for (let i = 0; i < 7; i++) { const date = new Date(d); date.setDate(d.getDate() + i); dates.push(date); } return dates; }
-        
-        function parseDate(dateString) {
-            if (!dateString) return null;
-            const parts = dateString.split(/[/ ]/);
-            // Formato de Google Forms en Chile: dd/MM/yyyy
-            return new Date(parts[2], parts[1] - 1, parts[0]);
-        }
-
-        function isDateInRange(checkDate, startStr, endStr) {
-            const d = new Date(checkDate); d.setHours(0, 0, 0, 0);
-            const s = parseDate(startStr);
-            const e = parseDate(endStr);
-            if (!s || !e) return false;
-            s.setHours(0, 0, 0, 0);
-            e.setHours(0, 0, 0, 0);
-            return d >= s && d < e;
-        }
-
+        function parseDate(dateString) { if (!dateString) return null; const parts = dateString.split(/[/ ]/); return new Date(parts[2], parts[1] - 1, parts[0]); }
+        function isDateInRange(checkDate, startStr, endStr) { const d = new Date(checkDate); d.setHours(0, 0, 0, 0); const s = parseDate(startStr); const e = parseDate(endStr); if (!s || !e) return false; s.setHours(0, 0, 0, 0); e.setHours(0, 0, 0, 0); return d >= s && d < e; }
         function getGuestForRoomAndDate(room, date) { for (const guest of formData) { if (guest.habitacion === room && isDateInRange(date, guest.fechaIngreso, guest.fechaSalida)) { return guest.nombre.trim(); } } return null; }
         function calculateOccupancy(dates) { let total = rooms.length * dates.length; if (total === 0) return 0; let occupied = 0; dates.forEach(d => rooms.forEach(r => { if (getGuestForRoomAndDate(r, d)) occupied++; })); return Math.round((occupied / total) * 100); }
         function renderTable() { const dates = generateWeekDates(currentWeekStart); document.getElementById('tableHeader').innerHTML = `<tr><th>Hab.</th>${dates.map(d => `<th>${formatDateShort(d)}</th>`).join('')}</tr>`; document.getElementById('tableBody').innerHTML = rooms.map(r => `<tr><td>${r}</td>${dates.map(d => { const guest = getGuestForRoomAndDate(r, d); return `<td class="${guest ? 'ocupado' : 'libre'}" title="${guest || 'Libre'}">${guest ? `<div class="guest-name">${guest}</div>` : ''}</td>`; }).join('')}</tr>`).join(''); document.getElementById('occupancyRate').textContent = `Ocupación: ${calculateOccupancy(dates)}%`; document.getElementById('currentDate').textContent = formatDate(new Date()); document.getElementById('currentWeek').textContent = `${formatDateShort(dates[0])} - ${formatDateShort(dates[6])}`; }
         function changeWeek(direction) { currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7)); renderTable(); }
-
         async function loadData() {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('occupancyTable').style.display = 'none';
@@ -180,13 +223,11 @@
                 document.getElementById('occupancyTable').style.display = 'table';
             }
         }
-        
-        document.addEventListener('DOMContentLoaded', () => {
+        function initializeCalendar() {
             currentWeekStart = getMonday(new Date());
             loadData();
-        });
-        setInterval(loadData, 300000); // Actualiza los datos automáticamente cada 5 minutos
+            setInterval(loadData, 300000); // Actualiza cada 5 minutos
+        }
     </script>
 </body>
 </html>
-
