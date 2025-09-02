@@ -5,34 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hostal HDQ - Ocupación</title>
     <style>
+        /* --- NUEVA PALETA DE COLORES --- */
         :root {
-            --primary-color: #3498db; --secondary-color: #2c3e50; --success-color: #27ae60;
-            --danger-color: #e74c3c; --light-bg: #f8f9fa; --dark-text: #34495e;
-            --gradient-primary: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            --gradient-header: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            --primary-color: #8D8787; /* Gris principal */
+            --secondary-color: #5C5858; /* Gris oscuro para el encabezado */
+            --light-bg: #F0EEE9; /* Fondo claro tipo café/beige */
+            --dark-text: #3D3A37; /* Texto principal oscuro */
+            
+            /* Colores de estado se mantienen */
+            --success-color: #27ae60; /* Verde para libre/éxito */
+            --danger-color: #e74c3c;  /* Rojo para ocupado/acción */
+            
+            /* Degradados actualizados */
+            --gradient-primary: linear-gradient(135deg, #A9A9A9 0%, #8D8787 100%);
+            --gradient-header: linear-gradient(135deg, #696969 0%, #5C5858 100%);
         }
+        /* --- FIN DE NUEVA PALETA --- */
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #D3CFC7 0%, #BAB5AE 100%); /* Fondo general en tonos café claro */
             min-height: 100vh; padding: 20px; color: var(--dark-text);
         }
         .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: var(--gradient-header); color: white; padding: 30px; text-align: center; }
         .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
         .header .date { font-size: 1.2em; opacity: 0.9; }
-        .controls { padding: 20px; background: var(--light-bg); border-bottom: 2px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .controls { padding: 20px; background: var(--light-bg); border-bottom: 2px solid #e0ddd7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .week-selector { display: flex; align-items: center; gap: 10px; }
         .week-selector button { background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; transition: all 0.3s ease; }
-        .week-selector button:hover { background: #2980b9; transform: translateY(-2px); }
+        .week-selector button:hover { background: var(--secondary-color); transform: translateY(-2px); }
         .current-week { font-weight: bold; }
         .occupancy-info { display: flex; align-items: center; gap: 15px; }
         .occupancy-rate { background: var(--success-color); color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; font-size: 1.1em; }
         .legend { display: flex; gap: 15px; font-size: 0.9em; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .legend-color { width: 20px; height: 20px; border-radius: 3px; }
-        .legend-libre { background-color: #d4edda; }
-        .legend-ocupado { background-color: #f8d7da; }
+        .legend-libre { background-color: #d4edda; } /* Verde se mantiene */
+        .legend-ocupado { background-color: #f8d7da; } /* Rojo se mantiene */
         .table-container { padding: 20px; overflow-x: auto; }
         .occupancy-table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .occupancy-table th { background: var(--gradient-primary); color: white; padding: 15px 10px; text-align: center; font-weight: bold; font-size: 1.1em; }
@@ -68,7 +79,7 @@
     <button class="refresh-btn" onclick="loadData()" title="Actualizar datos">🔄</button>
 
     <script>
-        // --- ¡LISTO! Tu link de Google Sheets está configurado ---
+        // --- Tu link de Google Sheets está configurado ---
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBPSZZfzoH0Xej-8smioPc4QLIDUEFg9Oyz5faJYl6LDp-21eJBdTTIVPTquhx1FU7vJoX7Bl4FbtM/pub?output=csv';
 
         let formData = [];
@@ -150,8 +161,6 @@
             if (!s || !e) return false;
             s.setHours(0, 0, 0, 0);
             e.setHours(0, 0, 0, 0);
-            // El día de salida (checkout) la habitación ya está libre.
-            // Por eso usamos "menor que" (<) la fecha de salida.
             return d >= s && d < e;
         }
 
@@ -176,8 +185,7 @@
             currentWeekStart = getMonday(new Date());
             loadData();
         });
-        // Actualiza los datos automáticamente cada 5 minutos
-        setInterval(loadData, 300000);
+        setInterval(loadData, 300000); // Actualiza los datos automáticamente cada 5 minutos
     </script>
 </body>
 </html>
