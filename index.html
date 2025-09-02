@@ -149,8 +149,9 @@
             const e = parseDate(endStr);
             if (!s || !e) return false;
             s.setHours(0, 0, 0, 0);
-            // La fecha de salida es el día que el huésped se va, por lo que no cuenta como ocupado.
-            // Usamos "menor que" (<) para que el día de salida aparezca como libre.
+            e.setHours(0, 0, 0, 0);
+            // El día de salida (checkout) la habitación ya está libre.
+            // Por eso usamos "menor que" (<) la fecha de salida.
             return d >= s && d < e;
         }
 
